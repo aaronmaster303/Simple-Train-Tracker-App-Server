@@ -8,7 +8,8 @@ const MBTA_BASE_URL = "https://api-v3.mbta.com";
 const app = express();
 const port = process.env.PORT || 3000;
 
-const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
+// const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
+const generalCache = new NodeCache({ stdTTL: 5 }); // General cache for 5 seconds
 const vehicleCache = new NodeCache({ stdTTL: 2.5 }); // Vehicle cache for 2.5 seconds
 
 const cacheMiddleware = (cacheInstance) => {
@@ -34,7 +35,7 @@ app.get("/routes", cacheMiddleware(generalCache), async (req, res) => {
     const response = await get(`${MBTA_BASE_URL}/routes`, {
       params: {
         api_key: MBTA_API_KEY,
-        "filter[type]": req.query.type,
+        ...req.query,
       },
     });
     res.json(response.data);
@@ -49,8 +50,21 @@ app.get("/stops", cacheMiddleware(generalCache), async (req, res) => {
     const response = await get(`${MBTA_BASE_URL}/stops`, {
       params: {
         api_key: MBTA_API_KEY,
-        "filter[route]": req.query.route,
-        "filter[direction_id]": req.query.direction_id,
+        ...req.query,
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    res.status(500).send(error.toString());
+  }
+});
+
+app.get("/stops/:stopId", cacheMiddleware(stopCache), async (req, res) => {
+  const { stopId } = req.params;
+  try {
+    const response = await axios.get(`${MBTA_BASE_URL}/stops/${stopId}`, {
+      params: {
+        api_key: MBTA_API_KEY,
       },
     });
     res.json(response.data);
@@ -65,8 +79,7 @@ app.get("/vehicles", cacheMiddleware(vehicleCache), async (req, res) => {
     const response = await get(`${MBTA_BASE_URL}/vehicles`, {
       params: {
         api_key: MBTA_API_KEY,
-        "filter[route]": req.query.route,
-        "filter[direction_id]": req.query.direction_id,
+        ...req.query,
       },
     });
     res.json(response.data);
