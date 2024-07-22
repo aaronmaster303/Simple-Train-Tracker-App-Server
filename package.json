@@ -1,0 +1,25 @@
+{
+  "name": "simple-train-tracker-app-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/master-aaron/Simple-Train-Tracker-App-Server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/master-aaron/Simple-Train-Tracker-App-Server/issues"
+  },
+  "homepage": "https://github.com/master-aaron/Simple-Train-Tracker-App-Server#readme",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "express": "^4.19.2"
+  }
+}
