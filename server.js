@@ -3,7 +3,8 @@ import axios from "axios";
 import NodeCache from "node-cache";
 
 const MBTA_API_KEY = "2a9bf598d2584bda8a3aec32f176044e";
-const MBTA_BASE_URL = "https://api-v3.mbta.com";
+const MBTA_API_BASE_URL = "https://api-v3.mbta.com";
+const MBTA_BASE_URL = "https://www.mbta.com";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,7 +46,7 @@ const handleError = (error, res) => {
 
 app.get("/routes", cacheMiddleware(generalCache), async (req, res) => {
   try {
-    const response = await axios.get(`${MBTA_BASE_URL}/routes`, {
+    const response = await axios.get(`${MBTA_API_BASE_URL}/routes`, {
       params: {
         api_key: MBTA_API_KEY,
         ...req.query,
@@ -60,7 +61,7 @@ app.get("/routes", cacheMiddleware(generalCache), async (req, res) => {
 // Stops endpoint
 app.get("/stops", cacheMiddleware(generalCache), async (req, res) => {
   try {
-    const response = await axios.get(`${MBTA_BASE_URL}/stops`, {
+    const response = await axios.get(`${MBTA_API_BASE_URL}/stops`, {
       params: {
         api_key: MBTA_API_KEY,
         ...req.query,
@@ -72,10 +73,49 @@ app.get("/stops", cacheMiddleware(generalCache), async (req, res) => {
   }
 });
 
+app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
+  try {
+    const route_pattern_list = await axios.get(
+      `${MBTA_API_BASE_URL}/route_patterns`,
+      {
+        params: {
+          api_key: MBTA_API_KEY,
+          sort: "typicality",
+          "filter[direction_id]": req.query["direction_id"],
+          "filter[route]": req.query["route"],
+          "fields[route_pattern]": "",
+        },
+      },
+    );
+
+    const route_pattern = route_pattern_list["data"]["data"][0]["id"];
+    console.log(route_pattern);
+
+    const stop_list_response = await axios.get(
+      `${MBTA_BASE_URL}/schedules/line_api`,
+      {
+        params: {
+          api_key: MBTA_API_KEY,
+          id: req.query["route"],
+          direction_id: req.query["direction_id"],
+          route_pattern: route_pattern,
+        },
+      },
+    );
+
+    const stop_list = stop_list_response["data"]["route_stop_lists"][0];
+    const stop_names_list = stop_list.map((stop) => ({ name: stop.name }));
+
+    res.json(stop_names_list);
+  } catch (error) {
+    handleError(error, res);
+  }
+});
+
 app.get("/stops/:stopId", cacheMiddleware(generalCache), async (req, res) => {
   const { stopId } = req.params;
   try {
-    const response = await axios.get(`${MBTA_BASE_URL}/stops/${stopId}`, {
+    const response = await axios.get(`${MBTA_API_BASE_URL}/stops/${stopId}`, {
       params: {
         api_key: MBTA_API_KEY,
       },
@@ -89,7 +129,7 @@ app.get("/stops/:stopId", cacheMiddleware(generalCache), async (req, res) => {
 // Vehicles endpoint
 app.get("/vehicles", cacheMiddleware(vehicleCache), async (req, res) => {
   try {
-    const response = await axios.get(`${MBTA_BASE_URL}/vehicles`, {
+    const response = await axios.get(`${MBTA_API_BASE_URL}/vehicles`, {
       params: {
         api_key: MBTA_API_KEY,
         ...req.query,
