@@ -43,6 +43,10 @@ const handleError = (error, res) => {
   }
 };
 
+app.get("/", cacheMiddleware(generalCache), async (req, res) => {
+  res.send("Hello");
+});
+
 app.get("/routes", cacheMiddleware(generalCache), async (req, res) => {
   try {
     const response = await axios.get(`${MBTA_BASE_URL}/routes`, {
