@@ -124,6 +124,10 @@ app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
       name: stop.attributes.name,
     }));
 
+    if (req.query["direction_id"] === "0") {
+      stopsNameList.reverse();
+    }
+
     res.json(stopsNameList);
   } catch (error) {
     handleError(error, res);
