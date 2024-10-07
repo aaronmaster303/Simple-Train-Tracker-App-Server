@@ -9,7 +9,15 @@ const MBTA_API_BASE_URL = "https://api-v3.mbta.com";
 const DEBUG_MODE = false;
 
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: "*", // Change "*" to your specific domain in production
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
 const port = process.env.PORT || 3000;
 
 const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
