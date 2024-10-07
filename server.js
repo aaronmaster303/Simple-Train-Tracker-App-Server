@@ -5,7 +5,6 @@ import NodeCache from "node-cache";
 
 const MBTA_API_KEY = "2a9bf598d2584bda8a3aec32f176044e";
 const MBTA_API_BASE_URL = "https://api-v3.mbta.com";
-// const MBTA_BASE_URL = "https://www.mbta.com";
 
 const DEBUG_MODE = false;
 
@@ -82,49 +81,6 @@ app.get("/stops", cacheMiddleware(generalCache), async (req, res) => {
   }
 });
 
-// app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
-//   try {
-//     const route_pattern_list = await axios.get(
-//       `${MBTA_API_BASE_URL}/route_patterns`,
-//       {
-//         params: {
-//           api_key: MBTA_API_KEY,
-//           sort: "typicality",
-//           "filter[direction_id]": req.query["direction_id"],
-//           "filter[route]": req.query["route"],
-//           "fields[route_pattern]": "",
-//         },
-//       },
-//     );
-//     console.log(route_pattern_list["data"]["data"]);
-//
-//     const route_pattern = route_pattern_list["data"]["data"][0]["id"];
-//     console.log(route_pattern);
-//
-//     const stop_list_response = await axios.get(
-//       `${MBTA_BASE_URL}/schedules/line_api`,
-//       {
-//         params: {
-//           api_key: MBTA_API_KEY,
-//           id: req.query["route"],
-//           direction_id: req.query["direction_id"],
-//           route_pattern: route_pattern,
-//         },
-//       },
-//     );
-//
-//     const stop_list = stop_list_response["data"]["route_stop_lists"][0];
-//     const stop_names_list = stop_list.map((stop) => ({
-//       name: stop.name,
-//       id: stop.id,
-//     }));
-//
-//     res.json(stop_names_list);
-//   } catch (error) {
-//     handleError(error, res);
-//   }
-// });
-
 app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
   try {
     const vehiclesResponse = await axios.get(`${MBTA_API_BASE_URL}/vehicles`, {
@@ -140,7 +96,7 @@ app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
         "id"
       ];
 
-    const stopsResponse = await axios.get(
+    const tripsResponse = await axios.get(
       `${MBTA_API_BASE_URL}/trips/${tripId}`,
       {
         params: {
@@ -150,11 +106,24 @@ app.get("/stops/bus", cacheMiddleware(generalCache), async (req, res) => {
       },
     );
 
-    const stopsList = stopsResponse["data"]["included"];
-    const stopsNameList = stopsList.map((stop) => ({
+    const stopsIdObjectList =
+      tripsResponse["data"]["data"]["relationships"]["stops"]["data"];
+    const stopsIdList = stopsIdObjectList.map((stop) => stop.id).join(",");
+
+    const stopsListResponse = await axios.get(`${MBTA_API_BASE_URL}/stops`, {
+      params: {
+        api_key: MBTA_API_KEY,
+        "fields[stop]": "name",
+        "filter[id]": stopsIdList,
+      },
+    });
+
+    const stopsObjectList = stopsListResponse["data"]["data"];
+    const stopsNameList = stopsObjectList.map((stop) => ({
       id: stop.id,
       name: stop.attributes.name,
     }));
+
     res.json(stopsNameList);
   } catch (error) {
     handleError(error, res);
