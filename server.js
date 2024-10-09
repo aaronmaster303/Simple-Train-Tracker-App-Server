@@ -3,21 +3,14 @@ import axios from "axios";
 import cors from "cors";
 import NodeCache from "node-cache";
 
-const MBTA_API_KEY = "2a9bf598d2584bda8a3aec32f176044e";
+const MBTA_API_KEY = process.env.MBTA_API_KEY;
 const MBTA_API_BASE_URL = "https://api-v3.mbta.com";
 
 const DEBUG_MODE = false;
 
 const app = express();
 
-const corsOptions = {
-  origin: "*", // Change "*" to your specific domain in production
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 const port = process.env.PORT || 3000;
 
 const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
