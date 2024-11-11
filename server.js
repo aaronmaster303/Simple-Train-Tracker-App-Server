@@ -183,8 +183,9 @@ app.get('/alerts', cacheMiddleware(alertsCache), async (req, res) => {
 			params: {
 				api_key: MBTA_API_KEY,
 				'filter[route]': req.query['route'],
-				'fields[alert]': 'header,effect,lifecycle,timeframe',
+				'fields[alert]': 'header,effect,lifecycle,timeframe,severity',
 				'filter[activity]': 'BOARD,EXIT,RIDE',
+				sort: 'severity',
 			},
 		});
 
