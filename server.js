@@ -16,7 +16,8 @@ const port = process.env.PORT || 3000;
 
 const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
 const vehicleCache = new NodeCache({ stdTTL: 2.5 }); // Vehicle cache for 2.5 seconds
-const alertsCache = new NodeCache({ stdTTL: 86400 / 4 }); // Alerts cache for 6 hours
+const predictionsCache = new NodeCache({ stdTTL: 2.5 }); // Predictions cache for 2.5 seconds
+const alertsCache = new NodeCache({ stdTTL: 60 }); // Alerts cache for every 1 minute
 
 let requestCount = 0;
 
@@ -190,6 +191,45 @@ app.get('/alerts', cacheMiddleware(alertsCache), async (req, res) => {
 		});
 
 		res.json(response.data);
+	} catch (error) {
+		handleError(error, res);
+	}
+});
+
+app.get('/predictions', cacheMiddleware(predictionsCache), async (req, res) => {
+	try {
+		const response = await axios.get(`${MBTA_API_BASE_URL}/predictions`, {
+			params: {
+				api_key: MBTA_API_KEY,
+				'filter[route]': req.query['route'],
+				'filter[direction_id]': req.query['direction_id'],
+				'fields[prediction]': 'departure_time,arrival_time',
+				'filter[stop]': req.query['stop'],
+				sort: 'departure_time',
+			},
+		});
+
+		console.log(req.query['stop']);
+		console.log(response.data);
+
+		const departureTime = new Date(
+			response.data.data[0].attributes.departure_time,
+		);
+		const arrivalTime = new Date(
+			response.data.data[0].attributes.arrival_time,
+		);
+
+		console.log('DEPARTURE_TIME' + departureTime);
+		console.log('ARRIVAL TIME' + arrivalTime);
+
+		const currentTime = new Date();
+		const timeUntilArrival = Math.round(
+			(arrivalTime - currentTime) / 60000,
+		); // Convert milliseconds to minutes
+
+		console.log('Time until Arrival');
+		console.log(timeUntilArrival);
+		res.json(timeUntilArrival);
 	} catch (error) {
 		handleError(error, res);
 	}
