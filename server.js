@@ -16,7 +16,7 @@ const port = process.env.PORT || 3000;
 
 const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
 const vehicleCache = new NodeCache({ stdTTL: 2.5 }); // Vehicle cache for 2.5 seconds
-const predictionsCache = new NodeCache({ stdTTL: 2.5 }); // Predictions cache for 2.5 seconds
+const predictionsCache = new NodeCache({ stdTTL: 3 }); // Predictions cache for 3 seconds
 const alertsCache = new NodeCache({ stdTTL: 60 }); // Alerts cache for every 1 minute
 
 let requestCount = 0;
@@ -209,9 +209,6 @@ app.get('/predictions', cacheMiddleware(predictionsCache), async (req, res) => {
 			},
 		});
 
-		console.log(req.query['stop']);
-		console.log(response.data);
-
 		const departureTime = new Date(
 			response.data.data[0].attributes.departure_time,
 		);
@@ -219,17 +216,18 @@ app.get('/predictions', cacheMiddleware(predictionsCache), async (req, res) => {
 			response.data.data[0].attributes.arrival_time,
 		);
 
-		console.log('DEPARTURE_TIME' + departureTime);
-		console.log('ARRIVAL TIME' + arrivalTime);
-
 		const currentTime = new Date();
-		const timeUntilArrival = Math.round(
-			(arrivalTime - currentTime) / 60000,
-		); // Convert milliseconds to minutes
+		const timeUntilArrival = Math.round((arrivalTime - currentTime) / 1000); // Convert milliseconds to seconds
 
-		console.log('Time until Arrival');
-		console.log(timeUntilArrival);
-		res.json(timeUntilArrival);
+		let minutes = Math.floor(timeUntilArrival / 60);
+		let seconds = timeUntilArrival % 60;
+
+		if (timeUntilArrival < 0) {
+			minutes = 0;
+			seconds = 0;
+		}
+
+		res.json({ minutes, seconds });
 	} catch (error) {
 		handleError(error, res);
 	}
