@@ -16,7 +16,7 @@ const port = process.env.PORT || 3000;
 
 const generalCache = new NodeCache({ stdTTL: 86400 }); // General cache for 24 hours
 const vehicleCache = new NodeCache({ stdTTL: 2.5 }); // Vehicle cache for 2.5 seconds
-const predictionsCache = new NodeCache({ stdTTL: 3 }); // Predictions cache for 3 seconds
+const predictionsCache = new NodeCache({ stdTTL: 0.5 }); // Predictions cache for 3 seconds
 const alertsCache = new NodeCache({ stdTTL: 60 }); // Alerts cache for every 1 minute
 
 let requestCount = 0;
@@ -205,13 +205,20 @@ app.get('/predictions', cacheMiddleware(predictionsCache), async (req, res) => {
 				'filter[direction_id]': req.query['direction_id'],
 				'fields[prediction]': 'departure_time,arrival_time',
 				'filter[stop]': req.query['stop'],
-				sort: 'departure_time',
+				sort: 'arrival_time',
 			},
 		});
 
-		const departureTime = new Date(
-			response.data.data[0].attributes.departure_time,
-		);
+		// Print arrival times in list
+		// const arrivalTimes = [];
+		//
+		// response.data.data.forEach((prediction) => {
+		// 	const dateTime = new Date(prediction.attributes.arrival_time);
+		// 	arrivalTimes.push(dateTime.toLocaleString());
+		// });
+		//
+		// console.log(arrivalTimes);
+
 		const arrivalTime = new Date(
 			response.data.data[0].attributes.arrival_time,
 		);
