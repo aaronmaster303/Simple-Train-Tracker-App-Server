@@ -1,13 +1,16 @@
 import express from 'express';
 import axios from 'axios';
 import cors from 'cors';
+import pino from 'pino';
 import NodeCache from 'node-cache';
+
+const logger = pino();
 
 // const MBTA_API_KEY = process.env.MBTA_API_KEY;
 const MBTA_API_KEY = '2a9bf598d2584bda8a3aec32f176044e';
 const MBTA_API_BASE_URL = 'https://api-v3.mbta.com';
 
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 
 const app = express();
 
@@ -26,12 +29,14 @@ const cacheMiddleware = (cacheInstance) => {
 		const cachedResponse = cacheInstance.get(key);
 
 		if (cachedResponse) {
-			if (DEBUG_MODE) console.log(`Serving cached response for ${key}`);
+			if (DEBUG_MODE) {
+				logger.info(`Serving cached response for ${key}`);
+			}
 			res.json(cachedResponse);
 		} else {
 			requestCount++;
 			if (DEBUG_MODE)
-				console.log(
+				logger.info(
 					`Making request #${requestCount} to MBTA API for ${key}`,
 				);
 			res.sendResponse = res.json;
@@ -47,8 +52,9 @@ const cacheMiddleware = (cacheInstance) => {
 const handleError = (error, res) => {
 	if (error.response) {
 		res.status(error.response.status).json({ error: error.response.data });
-		console.error('API call error:', error.response.statusText);
+		logger.error({ error: error.response.statusText }, 'API call error');
 	} else {
+		logger.error({ error: error.message }, 'Personal API call error');
 		res.status(500).json({ error: error.message });
 	}
 };
@@ -64,6 +70,10 @@ app.get('/routes', cacheMiddleware(generalCache), async (req, res) => {
 				api_key: MBTA_API_KEY,
 				...req.query,
 			},
+		});
+		logger.info({
+			type: 'mbta_api_call',
+			endpoint: '/routes',
 		});
 		res.json(response.data);
 	} catch (error) {
@@ -196,5 +206,5 @@ app.get('/alerts', cacheMiddleware(alertsCache), async (req, res) => {
 });
 
 app.listen(port, () => {
-	console.log(`Server is running on port ${port}`);
+	logger.info(`Server is running on port ${port}`);
 });
