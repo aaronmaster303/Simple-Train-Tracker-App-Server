@@ -1,6 +1,6 @@
 # Simple Train Tracker — Backend Server
 
-Express/Node.js server that proxies MBTA V3 API requests for the [MBTA Train & Bus Tracker](https://apps.apple.com/us/app/mbta-train-bus-tracker/id6748243506) iOS app.
+Express/Node.js server that proxies MBTA V3 API requests for two MBTA transit tracker clients — an iOS app and a vanilla JS web app.
 
 ---
 
@@ -72,11 +72,13 @@ Deployed on Railway: `https://simple-train-tracker-app-server-production.up.rail
 
 ---
 
-## Client App
+## Client Apps
 
-The iOS app that consumes this API: [Simple-Train-Tracker-App](https://github.com/aaronmaster303/Simple-Train-Tracker-App)
+**iOS App** — [Simple-Train-Tracker-App](https://github.com/aaronmaster303/Simple-Train-Tracker-App)
+[MBTA Train & Bus Tracker on the App Store](https://apps.apple.com/us/app/mbta-train-bus-tracker/id6748243506) · 100+ downloads · 5.0 stars
 
-App Store: [MBTA Train & Bus Tracker](https://apps.apple.com/us/app/mbta-train-bus-tracker/id6748243506)
+**Web App** — [Personal-Train-Tracker](https://github.com/aaronmaster303/Personal-Train-Tracker)
+Vanilla HTML/CSS/JS client · 350+ active users
 
 ---
 
