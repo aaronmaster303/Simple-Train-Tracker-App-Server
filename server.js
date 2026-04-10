@@ -3,8 +3,7 @@ import axios from 'axios';
 import cors from 'cors';
 import NodeCache from 'node-cache';
 
-// const MBTA_API_KEY = process.env.MBTA_API_KEY;
-const MBTA_API_KEY = '2a9bf598d2584bda8a3aec32f176044e';
+const MBTA_API_KEY = process.env.MBTA_API_KEY;
 const MBTA_API_BASE_URL = 'https://api-v3.mbta.com';
 
 const DEBUG_MODE = false;
@@ -33,7 +32,7 @@ const cacheMiddleware = (cacheInstance) => {
 			requestCount++;
 			if (DEBUG_MODE)
 				console.log(
-					`Making request #${requestCount} to MBTA API for ${key}`
+					`Making request #${requestCount} to MBTA API for ${key}`,
 				);
 			res.sendResponse = res.json;
 			res.json = (body) => {
@@ -63,8 +62,8 @@ app.get('/routes', cacheMiddleware(generalCache), async (req, res) => {
 		const response = await axios.get(`${MBTA_API_BASE_URL}/routes`, {
 			params: {
 				api_key: MBTA_API_KEY,
-				...req.query
-			}
+				...req.query,
+			},
 		});
 		res.json(response.data);
 	} catch (error) {
@@ -78,8 +77,8 @@ app.get('/stops', cacheMiddleware(generalCache), async (req, res) => {
 		const response = await axios.get(`${MBTA_API_BASE_URL}/stops`, {
 			params: {
 				api_key: MBTA_API_KEY,
-				...req.query
-			}
+				...req.query,
+			},
 		});
 		res.json(response.data);
 	} catch (error) {
@@ -95,9 +94,9 @@ app.get('/stops/bus', cacheMiddleware(generalCache), async (req, res) => {
 				params: {
 					api_key: MBTA_API_KEY,
 					'filter[route]': req.query['route'],
-					'filter[direction_id]': req.query['direction_id']
-				}
-			}
+					'filter[direction_id]': req.query['direction_id'],
+				},
+			},
 		);
 
 		const tripId =
@@ -110,9 +109,9 @@ app.get('/stops/bus', cacheMiddleware(generalCache), async (req, res) => {
 			{
 				params: {
 					api_key: MBTA_API_KEY,
-					include: 'stops'
-				}
-			}
+					include: 'stops',
+				},
+			},
 		);
 
 		const stopsIdObjectList =
@@ -125,15 +124,15 @@ app.get('/stops/bus', cacheMiddleware(generalCache), async (req, res) => {
 				params: {
 					api_key: MBTA_API_KEY,
 					'fields[stop]': 'name',
-					'filter[id]': stopsIdList
-				}
-			}
+					'filter[id]': stopsIdList,
+				},
+			},
 		);
 
 		const stopsObjectList = stopsListResponse['data']['data'];
 		const stopsNameList = stopsObjectList.map((stop) => ({
 			id: stop.id,
-			name: stop.attributes.name
+			name: stop.attributes.name,
 		}));
 
 		if (req.query['direction_id'] === '0') {
@@ -153,9 +152,9 @@ app.get('/stops/:stopId', cacheMiddleware(generalCache), async (req, res) => {
 			`${MBTA_API_BASE_URL}/stops/${stopId}`,
 			{
 				params: {
-					api_key: MBTA_API_KEY
-				}
-			}
+					api_key: MBTA_API_KEY,
+				},
+			},
 		);
 		res.json(response.data);
 	} catch (error) {
@@ -169,8 +168,8 @@ app.get('/vehicles', cacheMiddleware(vehicleCache), async (req, res) => {
 		const response = await axios.get(`${MBTA_API_BASE_URL}/vehicles`, {
 			params: {
 				api_key: MBTA_API_KEY,
-				...req.query
-			}
+				...req.query,
+			},
 		});
 		res.json(response.data);
 	} catch (error) {
@@ -186,8 +185,8 @@ app.get('/alerts', cacheMiddleware(alertsCache), async (req, res) => {
 				'filter[route]': req.query['route'],
 				'fields[alert]': 'header,effect,lifecycle,timeframe,severity',
 				'filter[activity]': 'BOARD,EXIT,RIDE',
-				sort: 'severity'
-			}
+				sort: 'severity',
+			},
 		});
 
 		res.json(response.data);
@@ -205,12 +204,12 @@ app.get('/predictions', cacheMiddleware(predictionsCache), async (req, res) => {
 				'filter[direction_id]': req.query['direction_id'],
 				'fields[prediction]': 'departure_time,arrival_time',
 				'filter[stop]': req.query['stop'],
-				sort: 'arrival_time'
-			}
+				sort: 'arrival_time',
+			},
 		});
 
 		const arrivalTime = new Date(
-			response.data.data[0].attributes.arrival_time
+			response.data.data[0].attributes.arrival_time,
 		);
 
 		const currentTime = new Date();
